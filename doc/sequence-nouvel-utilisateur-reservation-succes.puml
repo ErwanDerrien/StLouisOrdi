@@ -1,0 +1,33 @@
+@startuml Sequence Diagram
+
+Actor Student
+Participant Phone
+Participant Assistant as "Google Assistant"
+Participant Application as "Application\n St Louis Ordi"
+
+Student -> Phone: Démarre St Louis Ordi
+Phone -> Assistant
+Assistant -> Assistant: Recherche de l'application
+Assistant -> Application: Initialisation
+Application --> Phone: Message: Voulez-vous réserver un ordi ?
+
+Student -> Phone: Oui
+Phone -> Application
+Application -> Application: Recherche pour un ordi libre
+Application --> Phone: Message: Il y a un ordinateur libre.\nVoulez-vous le réserver ?
+
+Student -> Phone: Oui
+Phone -> Application
+Application -> Phone: Message: Quel est votre numéro d'étudiant ?
+
+Student -> Phone: 234 67
+Phone -> Application
+Application -> Application: Recherche de l'utilisateur
+Application -> Phone: Message: Vous êtes nouveau dans le système.\nQuel est votre nom ?
+
+Student -> Phone: Erwan
+Phone -> Application
+Application -> Application: Sauvegarde du nom de l'utilisateur
+Application -> Phone: Message: Merci Erwan. L'ordinateur C-204 est réservé à votre nom.
+
+@enduml

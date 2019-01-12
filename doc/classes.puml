@@ -1,0 +1,31 @@
+@startuml Class diagram
+
+class User {
+    id: number
+    name: string
+}
+
+class Directory {
+    searchById(id: number): User
+    createUser(userId: number): User
+}
+class Computer {
+    name: number
+    assignUser(user: User): boolean
+    freeUser(user: User): boolean
+    freeAllUser(user: User): boolean
+}
+
+class ClassRoom {
+    name: string
+    anyComputerFree(): number
+    reserveComputer(userId: number): Computer
+    freeComputer(userId: number): boolean
+}
+
+Directory "1" *-- "*" User : keeps track of >
+Computer "1" *-- "*" User : is used by >
+ClassRoom "1" *-- "*" Computer : contains >
+ClassRoom "*" *-- "1" Directory : relies on >
+
+@enduml

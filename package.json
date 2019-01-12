@@ -1,0 +1,15 @@
+{
+    "name": "@ed/stlouisordi",
+    "version": "1.0.0",
+    "description": "Last high school year personal project",
+    "author": "erwan1derrien@gmail.com",
+    "dependencies": {},
+    "devDependencies": {
+        "source-map-support": "latest",
+        "typescript": "latest"
+    },
+    "scripts": {
+        "watch": "tsc -p src --watch",
+        "test": "node -r source-map-support/register dist/server/tests/StandaloneModelTest.js"
+    }
+}
