@@ -9,14 +9,15 @@ My mentor on this project is my [father](https://github.com/DomDerrien).
 
 ## Prerequesites
 
-- NodeJS & npm
-- A Google developer account for Google AppEngine standard & Google Assistant setup
-- Suggested editor: Visual Studio Code
+- NodeJS & npm ([direct downloads](https://nodejs.org/en/download/) or via `brew` on Mac OS X)
+- A Google developer account for [Google AppEngine standard](https://cloud.google.com/appengine/docs/standard/nodejs/) & Google Assistant setup
+- Suggested editor: [Visual Studio Code](https://code.visualstudio.com/)
 
 ## Steps
 
-- git clone https://github.com/ErwanDerrien/StLouisOrdi
-- cd StLouisOrdi
-- npm install
-- (in one terminal:) npm run watch
-- (in one terminal:) npm run deploy
+- `git clone https://github.com/ErwanDerrien/StLouisOrdi`
+- `cd StLouisOrdi`
+- `npm install`
+- `npm run watch (in its own terminal window because it's a long running process)`
+- `npm test`
+- `npm run deploy`

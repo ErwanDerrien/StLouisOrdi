@@ -2,14 +2,49 @@
     "name": "@ed/stlouisordi",
     "version": "1.0.0",
     "description": "Last high school year personal project",
-    "author": "erwan1derrien@gmail.com",
-    "dependencies": {},
+    "keywords": [
+        "google voice",
+        "google assistant",
+        "dialogflow",
+        "google appengine standard",
+        "nodejs",
+        "express"
+    ],
+    "author": "Erwan Derrien <erwan1derrien@gmail.com>",
+    "contributors": [
+        {
+            "name": "Dom Derrien",
+            "email": "dom.derrien@gmail.com",
+            "url": "https://github.com/DomDerrien"
+        }
+    ],
+    "repository": "github:ErwanDerrien/stlouis-ordi",
+    "license": "MIT",
+    "dependencies": {
+        "actions-on-google": "latest",
+        "body-parser": "latest",
+        "cookie-parser": "latest",
+        "dialogflow-fulfillment": "latest",
+        "express": "latest",
+        "morgan": "latest"
+    },
     "devDependencies": {
+        "@types/body-parser": "latest",
+        "@types/cookie-parser": "latest",
+        "@types/express": "latest",
+        "@types/morgan": "latest",
+        "@types/node": "latest",
+        "@types/serve-static": "latest",
         "source-map-support": "latest",
+        "tslint": "latest",
         "typescript": "latest"
     },
+    "main": "dist/server/index.js",
     "scripts": {
-        "watch": "tsc -p src --watch",
-        "test": "node -r source-map-support/register dist/server/tests/StandaloneModelTest.js"
+        "watch": "tsc -p src/server --watch",
+        "start": "node dist/server/index.js",
+        "test": "node -r source-map-support/register dist/server/tests/StandaloneModelTest.js",
+        "deploy": "gcloud app deploy --project=stlouis-ordi",
+        "viewLogs": "gcloud app logs tail -s default  --project=stlouis-ordi"
     }
 }
