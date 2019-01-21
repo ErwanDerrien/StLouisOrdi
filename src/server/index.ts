@@ -1,7 +1,6 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
-import * as morgan from 'morgan';
 
 import { ServeStaticOptions } from 'serve-static';
 
@@ -36,7 +35,6 @@ class Server {
     }
 
     private addMiddlewares(bdParser: ExpressBodyParser = bodyParser, ckParser: ExpressCookieParser = cookieParser, serveStatic: ExpressStatic = express.static) {
-        this.expressApp.use(morgan('dev')); // See https://github.com/expressjs/morgan
         this.expressApp.use(bdParser.json());
         this.expressApp.use(bdParser.urlencoded({ extended: false }));
         this.expressApp.use(ckParser());
@@ -46,10 +44,10 @@ class Server {
             immutable: true,
             index: false,
             lastModified: true,
-            maxAge: 5 * 1000, // 5 seconds
+            maxAge: 24 * 3600 * 1000, // 24 heures seconds
             redirect: false
         };
-        this.expressApp.use('/images', serveStatic(__dirname + '/../../src/images', staticOptions));
+        this.expressApp.use('/images', serveStatic(__dirname + '/../../src/client/images', staticOptions));
     }
 
     private addServertRoutes() {

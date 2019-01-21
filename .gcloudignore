@@ -15,3 +15,11 @@
 
 # Node.js dependencies:
 node_modules/
+
+# Build dependencies
+dist/
+
+# Documentation
+doc/
+LICENSE
+README.md

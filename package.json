@@ -25,8 +25,7 @@
         "body-parser": "latest",
         "cookie-parser": "latest",
         "dialogflow-fulfillment": "latest",
-        "express": "latest",
-        "morgan": "latest"
+        "express": "latest"
     },
     "devDependencies": {
         "@types/body-parser": "latest",
@@ -44,7 +43,9 @@
         "watch": "tsc -p src/server --watch",
         "start": "node dist/server/index.js",
         "test": "node -r source-map-support/register dist/server/tests/StandaloneModelTest.js",
+        "gcp-build": "tsc -p src/server",
         "deploy": "gcloud app deploy --project=stlouis-ordi",
-        "viewLogs": "gcloud app logs tail -s default  --project=stlouis-ordi"
+        "viewLogs": "gcloud beta app logs tail --project=stlouis-ordi --service=default --level=any --logs=stderr,stdout",
+        "viewAllLogs": "gcloud beta app logs tail --project=stlouis-ordi --service=default --level=any --logs=stderr,stdout,crash.log,nginx.request,request_log"
     }
 }

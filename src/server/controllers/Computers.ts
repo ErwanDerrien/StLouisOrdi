@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { WebhookClient } from 'dialogflow-fulfillment';
+import { WebhookClient, Card, Suggestion } from 'dialogflow-fulfillment';
 
 import { ClassRoom } from '../models/ClassRoom';
 import { Computer } from '../models/Computer';
@@ -16,6 +16,7 @@ const INTENT_NAMES: string[] = [
     '99. Fallback message'
 ];
 
+const INTENT_WELCOME_IDX: number = 0;
 const INTENT_ANY_COMPUTER_FREE_IDX: number = 1;
 const INTENT_WANT_TO_RESERVE_IDX: number = 2;
 const INTENT_YOUR_STUDENT_NB_IDX: number = 3;
@@ -48,6 +49,7 @@ export class ComputersController {
 
         // 2. Logic flow for dialog setup
         this.dialogFlowIntentMap = new Map();
+        this.dialogFlowIntentMap.set(INTENT_NAMES[INTENT_WELCOME_IDX], this.welcome.bind(this));
         this.dialogFlowIntentMap.set(INTENT_NAMES[INTENT_ANY_COMPUTER_FREE_IDX], this.anyComputerFree.bind(this));
         this.dialogFlowIntentMap.set(INTENT_NAMES[INTENT_WANT_TO_RESERVE_IDX], this.wantToReserve.bind(this));
         this.dialogFlowIntentMap.set(INTENT_NAMES[INTENT_YOUR_STUDENT_NB_IDX], this.yourStudentNb.bind(this));
@@ -57,104 +59,116 @@ export class ComputersController {
     public getRouter(router: express.Router = express.Router()): express.Router {
         const itentMap: Map<string, (agent: WebhookClient) => void> = this.dialogFlowIntentMap;
         const handleRequest = (request: express.Request, response: express.Response): void => {
-            // request.body = HACK;
             new WebhookClient({ request, response }).handleRequest(itentMap);
         };
-
-        router.get('/fulfillment/computers', handleRequest);
         return router.post('/fulfillment/computers', handleRequest);
     }
 
-    private anyComputerFree(agent: WebhookClient): void {
-        const anyComputerFree: boolean = this.computerRoom.anyComputerFree();
-        if (anyComputerFree) {
-            agent.add('Oui, il y a des ordinateurs libres.');
-        }
-        else {
-            agent.add('Désolé, il n\'y a plus d\'ordinateurs libres !');
-        }
+    private welcome(agent: WebhookClient): void {
+        console.log('>>> Welcome');
+        agent.add('Bienvenue sur le système de réservation d\'ordinateurs du collège Saint Louis. ');
+        const appCard: Card = new Card({
+            imageUrl: 'https://stlouis-ordi.appspot.com/images/logo-app.png',
+            text: 'Tout arrive à l\'école',
+            title: 'St Louis Ordi'
+        });
+        agent.add(appCard);
+        agent.add('Que puis je faire pour vous aujourd\'hui ? ')
+        const anyComputerFreeSuggestion: Suggestion = new Suggestion('Des ordis libres ?');
+        const wantToeserveSuggestion: Suggestion = new Suggestion('Réserver un ordi.');
+        agent.add(anyComputerFreeSuggestion);
+        agent.add(wantToeserveSuggestion);
     }
 
-    private wantToReserve(agent: WebhookClient): void {
+    private anyComputerFree(agent: WebhookClient): void {
+        console.log('>>> Any computer free?');
         const anyComputerFree: boolean = this.computerRoom.anyComputerFree();
         if (!anyComputerFree) {
             agent.add('Désolé, il n\'y a plus d\'ordinateurs libres !');
         }
         else {
-            console.log('wantToReserve', agent.parameters);
+            agent.add('Oui, il y a des ordinateurs libres.');
+            const wantToeserveSuggestion: Suggestion = new Suggestion('Réserver un ordi.');
+            const byeSuggestion: Suggestion = new Suggestion('Bye ?');
+            agent.add(wantToeserveSuggestion);
+            agent.add(byeSuggestion);
+        }
+    }
+
+    private wantToReserve(agent: WebhookClient): void {
+        console.log('>>> Want to reserve');
+        const anyComputerFree: boolean = this.computerRoom.anyComputerFree();
+        if (!anyComputerFree) {
+            agent.add('Désolé, il n\'y a plus d\'ordinateurs libres !');
+        }
+        else {
             agent.add('Pas de problème, quel est votre numéro d\'étudiant ?');
         }
     }
 
     private yourStudentNb(agent: WebhookClient): void {
+        console.log('>>> Your student number', agent.parameters);
         const anyComputerFree: boolean = this.computerRoom.anyComputerFree();
         if (!anyComputerFree) {
             agent.add('Désolé, il n\'y a plus d\'ordinateurs libres !');
         }
         else {
-            // const studentNb = parseInt(agent.paramters['@studentNb']);
-            console.log('yourStudentNb', agent.parameters);
-            const studentNb = parseInt('123');
+            // Get all numbers spelled out
+            const studentNbParts: string[] = ['' + agent.parameters.number];
+            for (let idx = 1; idx < 16; idx += 1) {
+                const currentNumber: number = agent.parameters['number' + idx];
+                if (currentNumber !== undefined) {
+                    studentNbParts.push('' + currentNumber);
+                }
+            }
+            // Assemble the given numbers
+            const studentNb: number = parseInt(studentNbParts.join(''));
+            // Check if the student is known
             const student: User = this.schoolDirectory.searchById(studentNb);
             if (student === null) {
+                // Ask for the student name before
                 const conversation: DialogflowConversation = agent.conv();
-                conversation.ask('Quel est votre nom ?');
+                conversation.ask('C\'est la première fois que je vois ce numéro d\'étudiant. Quel est votre prénom ? ');
                 agent.add(conversation);
+                agent.context.set({
+                    name: 'context',
+                    lifespan: 10,
+                    parameters: { studentNb: '' + studentNb }
+                });
             }
             else {
-                agent.add('Avoir le nom de ' + student.id);
+                const computer: Computer = this.computerRoom.reserveComputer(studentNb);
+                agent.add('Voilà ' + student.name + ', l\'ordinateur ' + computer.name + ' a été réservé pour vous.');
+                const byeSuggestion: Suggestion = new Suggestion('Bye ?');
+                agent.add(byeSuggestion);
             }
         }
     }
 
     private yourStudentName(agent: WebhookClient): void {
+        console.log('>>> Your student name', agent.parameters);
         const anyComputerFree: boolean = this.computerRoom.anyComputerFree();
         if (!anyComputerFree) {
             agent.add('Désolé, il n\'y a plus d\'ordinateurs libres !');
         }
         else {
-            console.log('yourStudentName', agent.parameters);
-            agent.add('Maintenant qu\'on a le nom complet, procédons à la réservation');
+            try {
+                const context: any = agent.context.get('context');
+                console.log('*****', context);
+                const name: string = context.parameters.name;
+                const studentNb: number = parseInt(context.parameters.studentNb);
+                console.log('*****', studentNb, 'w/', name);
+                const student: User = this.schoolDirectory.createUser(studentNb);
+                student.name = name;
+                const computer: Computer = this.computerRoom.reserveComputer(studentNb);
+                agent.add('Voilà ' + name + ', l\'ordinateur « ' + computer.name + ' » a été réservé pour vous.');
+                const byeSuggestion: Suggestion = new Suggestion('Bye ?');
+                agent.add(byeSuggestion);
+                agent.context.delete('studentNb');
+            } catch (error) {
+                console.log('****', error);
+                agent.add('Petit problème technique, ré-essayer un peu plus tard. Merci.')
+            }
         }
     }
 }
-
-// const HACK: any = {
-//     responseId: '84752a4c-55f4-4993-ae0a-1af41c3bfa62',
-//     session: 'projects/saintlouisorditest/agent/sessions/6bc27b81-26c6-34d9-822e-9ebb9dc67c7e',
-//     queryResult: {
-//         queryText: 'Des ordis libres ?',
-//         parameters: {
-//             Ordinateurs: '',
-//             number: ''
-//         },
-//         fulfillmentText: 'What is the Ordinateurs?',
-//         fulfillmentMessages: [{
-//             text: {
-//                 text: ['What is the Ordinateurs?']
-//             }
-//         }],
-//         outputContexts: [
-//             {
-//                 name: 'projects/saintlouisorditest/agent/sessions/6bc27b81-26c6-34d9-822e-9ebb9dc67c7e/contexts/combien_d\'ordis_libres_?_dialog_params_ordinateurs',
-//                 lifespanCount: 1,
-//                 parameters: { number: '', 'Ordinateurs.original': '', 'number.original': '', Ordinateurs: '' }
-//             }, {
-//                 name: 'projects/saintlouisorditest/agent/sessions/6bc27b81-26c6-34d9-822e-9ebb9dc67c7e/contexts/combien_d\'ordis_libres_?_dialog_context',
-//                 lifespanCount: 2,
-//                 parameters: { number: '', 'Ordinateurs.original': '', 'number.original': '', Ordinateurs: '' }
-//             }, {
-//                 name: 'projects/saintlouisorditest/agent/sessions/6bc27b81-26c6-34d9-822e-9ebb9dc67c7e/contexts/b9c8192e-3d39-4a15-a0b6-12e08c766c62_id_dialog_context',
-//                 lifespanCount: 2,
-//                 parameters: { number: '', 'Ordinateurs.original': '', 'number.original': '', Ordinateurs: '' }
-//             }
-//         ],
-//         intent: {
-//             name: 'projects/saintlouisorditest/agent/intents/b9c8192e-3d39-4a15-a0b6-12e08c766c62',
-//             displayName: '2. Want to reserve?'
-//         },
-//         intentDetectionConfidence: 1,
-//         languageCode: 'fr'
-//     },
-//     originalDetectIntentRequest: { payload: {} },
-// };

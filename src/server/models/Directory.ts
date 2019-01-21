@@ -5,11 +5,10 @@ export class Directory {
 
     public constructor() {
         // Creation of some users
-        const admin: User = this.createUser(0);
-        admin.name = 'Administrator';
+        this.createUser(0).name = 'Administrateur';
 
-        const testUser: User = this.createUser(123);
-        testUser.name = 'Test user';
+        this.createUser(123).name = 'Étudiant testeur';
+        this.createUser(1424134).name = 'Erwan';
     }
 
     public searchById(userId: number): User {
