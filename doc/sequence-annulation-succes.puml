@@ -1,4 +1,4 @@
-@startuml Séquence Réservation Nouvel Utilisateur Succès
+@startuml Séquence Annulation Succès
 
 Actor Student
 Participant Phone
@@ -14,19 +14,14 @@ Application --> Phone: Suggestion 1 : Des ordis libres ?
 Application --> Phone: Suggestion 2 : Réservez un ordi ?
 Application --> Phone: Suggestion 3 : Annuler une réservation ?
 
-Student -> Phone: Réservez un ordi.
+Student -> Phone: Annuler une réservation.
 Application -> Phone: Message: Quel est votre numéro d'étudiant ?
 
 Student -> Phone: 1424134
 Phone -> Application
 Application -> Application: Recherche de l'utilisateur
-Application -> Phone: Message: Quel est votre prénom ?
-Student -> Phone: Erwan
-
-Phone -> Application
-Application -> Application: Création du nouvel utilisateur
-Application -> Application: Recherche d'un ordinateur libre
-Application -> Application: Association de l'ordi à l'utilisateur
-Application -> Phone: Message: Merci Erwan. L'ordinateur C-201 est réservé à votre nom.
+Application -> Application: Recherche de l'ordi assigné à l'utilisateur
+Application -> Application: Libération de l'ordi 
+Application -> Phone: Message: Merci Erwan. L'ordinateur n'est plus réservé à votre nom.
 
 @enduml
